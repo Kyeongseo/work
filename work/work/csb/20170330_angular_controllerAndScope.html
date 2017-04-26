@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html ng-app="exampleApp">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<script>
+		angular.module("exampleApp",[])
+			.controller("simpleCtrl",function($scope, $rootScope){
+				/*$scope.setAddress = function (type, zip){
+					console.log("type : "+ type + " " + zip);
+				}
+				$scope.copyAddress = function(){
+					$scope.shippingZip = $scope.billingZip;
+				}*/
+				$scope.on("zipCodeUpdated ")
+			})
+	</script>
+</head>
+<body>
+	<div class="well" ng-controller="simpleCtrl">
+		<div class="form-group">
+			<input class="form-control" ng-model="zip">
+		</div>
+		<button class="btn btn-primary" ng-click="setAddress('billingZip',zip)">
+			Save Billing
+		</button>
+	</div>
+	<div class="well" ng-controller="simpleCtrl">
+		<div class="form-group">
+			<input class="form-control" ng-model="zip">
+		</div>
+		<button class="btn btn-primary" ng-click="copyAddress()">
+			Use Billing
+		</button>
+		<button class="btn btn-primary" ng-click="setAddress('shippingZip',zip)">
+			Save shipping			
+		</button>
+	</div>
+</body>
+</html>

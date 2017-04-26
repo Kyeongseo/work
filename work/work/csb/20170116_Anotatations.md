@@ -1,0 +1,21 @@
+- @RestController
+	- 이 클래스가 웹 애프리케이션에서 요청(request)을 받아들이는 컨트롤러 클래스임을 나타냄.
+- @EnableAutoConfiguration
+	- 다양한 설정이 자동으로 수생되며 기존 스프링 애플리케이션에 필요했던 설정 파일들이 필요없게됨.
+- @RequestMapping
+	- 이 메서드가 HTTP요청을 받아들이는 메서드임을 나타냄.
+- @Configuration
+	- 이 클래스가 JavaConfig용 클리스임을 컴파일러에 알림. // Bean 정의
+- @Bean
+	- DI 컨테이너가 관리할 Bean을 생성.
+	- 이 어노테이션을 붙인 메서드가 생성한 인스턴스가 싱글톤이되며 DI 컨테이너별로 인스턴스 한개가 생성.
+- @Import(...)
+	- JavaConfig를 읽어들이기 위해 @Configuration 어노테이션이 붙은 클래스를 지정
+- @Data
+	- 컴파일(.class 파일 생성)할 때 각 필드의 setter/getter,toString(),equals(),hashCode() 메서드 생성.
+	- final 붙이면 setter 생성 X.
+- __@Autowired__
+	- Autowired 어노테이션을 붙인 필드는 DI 컨테이너가 주입해야 할 필드를 의미.
+- @ComponentScan
+	- Bean을 DI 컨테이너에 자동으로 등록하는 기능.
+	- 어노테이션을 붙인 클래스의 패키지 내부에 있는 모든 클래스를 검색해 @Component같은 어노테이션이 붙은 자바 클래스를 찾아내 DI 컨테이너에 등록.

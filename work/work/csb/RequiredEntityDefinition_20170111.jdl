@@ -1,0 +1,210 @@
+entity ServiceType (t_service_type) {
+    svcTypeId String,
+    description TextBlob
+}
+
+entity SoftwareInfo (t_software_info) {
+    swId String,
+    swVersion String
+}
+
+relationship OneToOne {
+    SoftwareInfo{serviceType(svcTypeId)} to ServiceType
+}
+
+entity VmSpecInfo (t_vm_spec_info) {
+    vmSpecId String,
+    vmSpecName String,
+    description TextBlob,
+    vcpuSize Integer,
+    memorySize Integer,
+    diskSize Integer,
+    createdTime ZonedDateTime,
+    updatedTime ZonedDateTime
+}
+
+entity ServiceImage (t_service_image) {
+    svcImageId String,
+    userId String,
+    serviceImageName String,
+    description TextBlob,
+    imageSize Integer,
+    createdTime ZonedDateTime,
+    updatedTime ZonedDateTime
+}
+
+relationship OneToOne {
+    ServiceImage{cloud} to CloudInfo
+}
+
+relationship OneToOne {
+    ServiceImage{imageType(svcTypeId)} to ServiceType
+}
+
+relationship OneToOne {
+    ServiceImage{osType(osTypeId)} to OsType
+}
+
+relationship ManyToMany {
+    ServiceImage{softwareInfo(swId)} to SoftwareInfo{serviceImage(serviceImageName)}
+}
+
+entity OsType (t_os_type) {
+    osTypeId String,
+    osVersion String
+}
+
+entity ServiceZone (t_service_zone) {
+    zoneId String,
+    zoneName String,
+    description TextBlob
+}
+
+entity CloudInfo (t_cloud_info) {
+    cloudId String,
+    country String,
+    city String,
+    userId String,
+    description TextBlob,
+    hostUrl String,
+    cloudUserId String,
+    cloudPassword String,
+    reservedInfo String,
+    createdTime ZonedDateTime,
+    updatedTime ZonedDateTime
+}
+
+relationship OneToOne {
+    CloudInfo{cloudPlat(cloudPlatId)} to CloudPlatform
+}
+
+relationship OneToOne {
+    CloudInfo{zone(zoneName)} to ServiceZone
+}
+
+entity CloudPlatform (t_cloud_platform) {
+    cloudPlatId String,
+    description TextBlob
+}
+
+entity UnitServiceInfo (t_unit_service_info) {
+    unitServiceId String,
+    unitServiceName String,
+    country String,
+    city String
+}
+
+relationship OneToOne {
+    UnitServiceInfo{goldImage} to ServiceImage
+}
+
+relationship OneToOne {
+    UnitServiceInfo{osType(osTypeId)} to OsType
+}
+
+relationship OneToOne {
+    UnitServiceInfo{vmSpec} to VmSpecInfo
+}
+
+relationship OneToOne {
+    UnitServiceInfo{svcType(svcTypeId)} to ServiceType
+}
+
+entity CloudServiceInfo(t_cloud_service_info) {
+    cloudServiceId String,
+    cloudServiceName String,
+    description TextBlob,
+    createdTime ZonedDateTime,
+    updatedTime ZonedDateTime
+}
+
+relationship OneToOne {
+    CloudServiceInfo{goldImage} to ServiceImage
+}
+
+relationship OneToOne {
+    CloudServiceInfo{location} to ServiceZone
+}
+
+relationship OneToOne {
+    CloudServiceInfo{osType(osTypeId)} to OsType
+}
+
+relationship OneToOne {
+    CloudServiceInfo{svcType(svcTypeId)} to ServiceType
+}
+
+relationship OneToOne {
+    CloudServiceInfo{vmSpec} to VmSpecInfo
+}
+
+relationship ManyToOne {
+    UnitServiceInfo{cloudService} to CloudServiceInfo
+}
+
+entity UserServiceInfo (t_user_service_info) {
+    userServiceId String,
+    userServiceName String,
+    description TextBlob,
+    createdTime ZonedDateTime,
+    updatedTime ZonedDateTime,
+    userId String
+}
+
+relationship ManyToOne {
+    UserServiceInfo{cloudService} to CloudServiceInfo
+}
+
+relationship OneToOne {
+    UserServiceInfo{location} to ServiceZone
+}
+
+relationship OneToOne {
+    UserServiceInfo{svcType(svcTypeId)} to ServiceType
+}
+
+entity VmInfo (t_vm_info) {
+    vmId String,
+    vmName String,
+    cscUserId String,
+    cspUserId String,
+    ip String,
+    description TextBlob,
+    createdTime ZonedDateTime,
+    updatedTime ZonedDateTime
+}
+
+relationship OneToOne {
+    VmInfo{unitService} to UnitServiceInfo
+}
+
+relationship OneToOne {
+    VmInfo{vmSpec} to VmSpecInfo
+}
+
+relationship OneToOne {
+    VmInfo{provider(providerName)} to ProviderInfo
+}
+
+entity ProviderInfo (t_provider_info) {
+    providerId String,
+    providerName String
+}
+
+paginate all with pagination
+
+skipClient for *
+
+skipClient for VmInfo
+skipClient for ProviderInfo
+skipClient for UserServiceInfo
+skipClient for VmSpecInfo
+skipClient for ServiceZone
+skipClient for CloudServiceInfo
+skipClient for UnitServiceInfo
+skipClient for SoftwareInfo
+skipClient for ServiceType
+skipClient for ServiceImage
+skipClient for OsType
+skipClient for CloudInfo
+skipClient for CloudPlatform

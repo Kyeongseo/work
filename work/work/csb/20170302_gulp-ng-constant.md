@@ -1,0 +1,6 @@
+- gulp 'gulp-ng-constant' Util을 사용하여 resourceUrl에 일괄 적용.
+- gulp-ng-constant는 build시 plugin을 통해 동작하기 때문에 IDEA에서
+- Run Configuration시키면 적용이 되지 않습니다.
+- 적용법은 아래 2가지가 있으니 편한걸로 적용하시면 됩니다.
+ - cli를 이용하여 gulp qaconstant 명령어를 실행
+ - IDEA Run Configuration에서 Before Launch옵션에서 'clean package -DskipTests=true -Pqa' Maven 명령어 추가 (package명령이 수행되기에 시간이 오래 걸립니다.)
