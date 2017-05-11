@@ -18,7 +18,7 @@ Angular Material
 	- layout-xs	: width < 600px
 
 ---
-####Services
+#### Services
 - $mdAriaProvider
 	- used by most or the Angular Material components
 - $mdBottomSheet API
