@@ -200,5 +200,14 @@ maven 패키징시 cloud driver 추가
     </build>
 ```
 
+logger
+```
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+private static final Logger logger = LoggerFactory.getLogger(ServiceVMVolumeServiceImpl.class);
+
+logger.debug("There is no result !!!");
+```
 
 
