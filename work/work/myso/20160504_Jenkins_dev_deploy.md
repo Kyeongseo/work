@@ -1,10 +1,10 @@
-#Jenkins연동 소스 자동 deploy 설정
+# Jenkins연동 소스 자동 deploy 설정
 
 __Dev서버에서 Jenkins와 연동하여 업데이트된 소스코드를 자동으로 Deploy 할 수 있도록 한다.__
 
 [Wiki Link. 사진 포함](https://insoft-cloud.torchpad.com/dev/Jenkins/Jenkins%EC%97%B0%EB%8F%99+%EC%9E%90%EB%8F%99+deploy+%EC%84%A4%EC%A0%95)
 
-##Tomcat 설치.
+## Tomcat 설치.
 - SSH접속 명령어(ubuntu).
 ```
 $ ssh -i '---.pem' ubuntu@'domain'
@@ -54,7 +54,7 @@ $ wget http://archive.apache.org/dist/tomcat/tomcat-7/v7.0.54/bin/apache-tomcat-
 $ tar -xvf apache-tomcat-7.0.54.tar.gz
 ```
 
-##Java 설치
+## Java 설치
 - OpenJDK 제거.
 ```
 $ sudo apt-get purge openjdk*
@@ -112,7 +112,7 @@ export JAVA_HOME=/usr/lib/jvm/java-8-oracle/
 source /etc/bash.bashrc 
 ```
 
-##Tomcat에 '---.war' deploy 하여 실행 확인
+## Tomcat에 '---.war' deploy 하여 실행 확인
 - __war__ file 생성 위한 run __configuration__ 추가. __IntelliJ__ (Maven.profile-dev로 설정)
 ![war파일 생성.JPG](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/5MyfYndZRZ2Nd8Novjqr_war%ED%8C%8C%EC%9D%BC%20%EC%83%9D%EC%84%B1.JPG)
 
@@ -178,7 +178,7 @@ $ cat catalina.out
 http://domain:8080/console/
 ```
 
-##Jenkins over SSH 설정
+## Jenkins over SSH 설정
 - Jenkins 로그인 > 왼쪽 바에 __Jenkins 관리__ > __시스템 설정__
 ![jenkins 시스템 설정.JPG](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/hKsDt0QhSoYkSzicD6ET_jenkins%20%EC%8B%9C%EC%8A%A4%ED%85%9C%20%EC%84%A4%EC%A0%95.JPG)
 
@@ -223,7 +223,7 @@ $ sudo chmod 777 dev (권한 변경)
 ![빌드후 조치.JPG](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/zzZUvxOiQ1yp60TJM1eD_%EB%B9%8C%EB%93%9C%ED%9B%84%20%EC%A1%B0%EC%B9%98.JPG)
 
 
-##GitLap Push 이벤트 발생 시 war 파일 copy 확인
+## GitLap Push 이벤트 발생 시 war 파일 copy 확인
 - __프로젝트 선택__ > 왼쪽 바에 __'Build Now'__
 ![BuildNow.JPG](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/3hnhqAQgSMrJt1DLRZlB_BuildNow.JPG)
 
@@ -236,7 +236,7 @@ $ sudo chmod 777 dev (권한 변경)
 - __/dev__ 디렉토리에 __copy__ 확인. (/workspace/dev)
 ![copy 확인.JPG](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/fc4keSXeTUGjwBpoGH26_copy%20%ED%99%95%EC%9D%B8.JPG)
 
-##Tomcat에 자동 Deploy
+## Tomcat에 자동 Deploy
 - 위 __over SSH__에서 설정한 ```Exec command: sh /workspace/myso_dep_dev.sh``` 대로  __myso_dep_dev.sh 생성__
 ```
 $ cd workspace
@@ -260,7 +260,7 @@ sudo rm -rf *.*
 sudo rm -rf *
 echo "remove everything"
 #move console.war file
-mv /workspace/dev/console.war /usr/local/apache-tomcat-7.0.54/webapps/
+mv /workspace/dev/console.war /usr/local/tomcat/apache-tomcat-7.0.54/webapps/
 echo "console.war move from dev to webapps"
 #restart tomcat
 cd /usr/local/apache-tomcat-7.0.54/bin
