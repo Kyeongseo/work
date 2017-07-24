@@ -1,6 +1,6 @@
-# IRIS 설치 메뉴얼
+# IRIS설치 매뉴얼
 
-# IRIS Mysocloud를 이용한 설치 메뉴얼
+# IRIS Mysocloud를 이용한 설치 매뉴얼
 
 ## 어플리케이션 등록
 - 어플리케이션 관리 > 어플리케이션 정보 관리 > 어플리케이션 정보 등록 클릭
@@ -23,8 +23,8 @@ sudo adduser iris
 echo iris-review-slaves | passwd iris --stdin
 echo "iris ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 yum install -y gcc gcc-c++ autoconf automake openssl openssl-devel readline readline-devel zlib-devel zip expect > /home/iris/yum-install-log.txt
-sudo su - iris -c "cd /home/iris; wget https://s3-ap-northeast-1.amazonaws.com/gcs.dev/IRIS_1.5.1_1-CentOS6.tgz --no-check-certificate >  /home/iris/iris-download-log.txt"
-sudo su - iris -c "tar zxvf IRIS_1.5.1_1-CentOS6.tgz  >  /home/iris/iris-install-log.txt"
+sudo su - iris -c "cd /home/iris;wget https://s3-ap-northeast-1.amazonaws.com/gcs.dev/IRIS_2.0.0_287a24c.tgz --no-check-certificate --output-file=/home/iris/iris-download-log.txt"
+sudo su - iris -c "tar zxvf IRIS_2.0.0_287a24c.tgz  >  /home/iris/iris-install-log.txt"
 ```
 - 마스터 노드 워크플로우 작성시 install dependencies 스크립트 마지막에 아래 명령어 추가
 
@@ -33,17 +33,29 @@ sudo su - iris -c "touch ~/IRIS/conf/ha-default"
 ```
 
 - 이벤트 이름: set master node config
-	- 스크립트
+	- uCloud 전용 스크립트
   
 ```
 #!/bin/bash
 myIp=`sudo ifconfig -a | grep "inet " | grep "Bcast:" | awk '{print $2}' | awk -F: '{print $2}'`
 sudo su - iris -c "echo '0|${myIp}' > /home/iris/IRIS/setup/pre-config/master"
+sudo su - iris -c "echo '1|' > /home/iris/IRIS/setup/pre-config/slaves"
 sudo su - iris -c "echo '1'  > ~/IRIS_NODE_INDEX.txt "
 ```
 
+- 이벤트 이름: set master node config aws
+	- AWS 전용 스크립트
+  
+```
+#!/bin/bash
+myIp=`sudo ifconfig -a | grep "inet " | grep "Bcast:" | awk '{print $2}' | awk -F: '{print $2}'`
+sudo su - iris -c "echo '0|${myIp}' > /home/iris/IRIS/setup/pre-config/master"
+sudo su - iris -c "echo '1|' > /home/iris/IRIS/setup/pre-config/slaves"
+sudo su - ec2-user -c "echo '1'  > ~/IRIS_NODE_INDEX.txt "
+```
+
 - 이벤트 이름: set slave node config
-	- 스크립트
+	- uCloud 전용 스크립트
   
 ```
 #!/bin/bash
@@ -67,6 +79,29 @@ expect "password:"
         send "${eventParams_password}\r"
 expect eof
 EOF
+```
+- 이벤트 이름: set slave node config aws
+	- AWS 전용 스크립트
+  
+```
+#!/bin/bash
+myIp=`sudo ifconfig -a | grep "inet " | grep "Bcast:" | awk '{print $2}' | awk -F: '{print $2}'`
+sudo su - ec2-user -c "wget -O ~/temp.pem http://${eventParams_serverDomain}/console/api/keypair/${eventParams_masterIp}."
+sudo su - ec2-user -c "chmod 777 ~/temp.pem"
+expect <<EOF
+spawn sudo scp -i /home/ec2-user/temp.pem ec2-user@${eventParams_masterIp}:/home/ec2-user/IRIS_NODE_INDEX.txt /home/ec2-user
+expect "Are you sure you want to continue connecting (yes/no)?"
+        send "yes\r"
+expect eof
+EOF
+sudo chown ec2-user:ec2-user /home/ec2-user/IRIS_NODE_INDEX.txt
+myIndex=`awk '{print $1}' /home/ec2-user/IRIS_NODE_INDEX.txt`
+sudo su - iris -c "echo '0|${eventParams_masterIp}' > ~/IRIS/setup/pre-config/master"
+sudo su - iris -c "echo '${myIndex}|${myIp}' > ~/IRIS/setup/pre-config/slaves"
+newMyIndex=`expr $myIndex + 1`
+sudo su - ec2-user -c "echo '${newMyIndex}' > ~/MY_INDEX.txt"
+sudo scp -i /home/ec2-user/temp.pem /home/ec2-user/MY_INDEX.txt ec2-user@${eventParams_masterIp}:/home/ec2-user/IRIS_NODE_INDEX.txt
+sudo su - ec2-user -c "rm -rf ~/temp.pem"
 ```
 
 - 이벤트 이름: set ha master node config
@@ -142,38 +177,83 @@ sudo su - iris -c "~/IRIS/bin/Admin/NodeAdd"
 ```
 
 # Master Node 워크플로우 작성
+## uCloud
 - 서비스 관리 > 인스턴스 모델 관리 > 인스턴스 모델 검색 > iris-master 모델(미리 생성이 되어 있어야 한다.) 선택
 - 상단 탭에서 어플리케이션 > 어플리케이션 관리 버튼 클릭 > 위에서 등록한 어플리케이션 선택
 - 상단 탭 실행 워크플로우 > 워크 플로우 추가 버튼 클릭
 - 워크플로우 이름 입력
 - 자동실행 상태 Running 설정
-![워크플로우-마스터.PNG](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/nxYFwLKSBuDtH6BZbnbj_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%A7%88%EC%8A%A4%ED%84%B0.PNG)
+![위크플로우-마스터.png](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/Ey9v4fW5RruN1wys837W_%EC%9C%84%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%A7%88%EC%8A%A4%ED%84%B0.png)
+
 
 - Install dependencies > set Master node config > install iris > init database > run iris 순으로 디자인
-![워크플로우-마스터-디자인.PNG](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/rulaVauKQsu8To8eHgsm_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%A7%88%EC%8A%A4%ED%84%B0-%EB%94%94%EC%9E%90%EC%9D%B8.PNG)
+![워크플로우-마스터-디자인-ucloud.png](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/3gThwR7PROen13vUTAnA_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%A7%88%EC%8A%A4%ED%84%B0-%EB%94%94%EC%9E%90%EC%9D%B8-ucloud.png)
+
+
+- 인스턴스 모델 상세 정보 > 인스턴스 추가 생성 버튼 클릭
+
+## AWS
+- 서비스 관리 > 인스턴스 모델 관리 > 인스턴스 모델 검색 > iris-master 모델(미리 생성이 되어 있어야 한다.) 선택
+- 상단 탭에서 어플리케이션 > 어플리케이션 관리 버튼 클릭 > 위에서 등록한 어플리케이션 선택
+- 상단 탭 실행 워크플로우 > 워크 플로우 추가 버튼 클릭
+- 워크플로우 이름 입력
+- 자동실행 상태 Running 설정
+![워크플로우-마스터-aws.png](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/TZo1k1dT20fPxYcOozAU_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%A7%88%EC%8A%A4%ED%84%B0-aws.png)
+
+
+- Install dependencies > set Master node config aws> install iris > init database > run iris 순으로 디자인
+![워크플로우-마스터-디자인-aws.png](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/ZSFydaaHTjmm70CH6mX7_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%A7%88%EC%8A%A4%ED%84%B0-%EB%94%94%EC%9E%90%EC%9D%B8-aws.png)
 
 - 인스턴스 모델 상세 정보 > 인스턴스 추가 생성 버튼 클릭
 
 # Slave Node 워크플로우 작성
+##uCloud
 - Master node의 인스턴스가 생성되고 iris가 실행 상태여야 한다.
 - 서비스 관리 > 인스턴스 모델 관리 > 인스턴스 모델 검색 > iris-slave 모델(미리 생성이 되어 있어야 한다.) 선택
 - 상단 탭에서 어플리케이션 > 어플리케이션 관리 버튼 클릭 > 위에서 등록한 어플리케이션 선택
 - 상단 탭 실행 워크플로우 > 워크 플로우 추가 버튼 클릭
 - 워크플로우 이름 입력
 - 자동실행 상태 Running 설정
-![워크플로우-슬레이브.PNG](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/7fYzz3DfRSuyZgbCgZve_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EC%8A%AC%EB%A0%88%EC%9D%B4%EB%B8%8C.PNG)
+![워크플로우-데이터-ucloud.png](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/MWupedheQzWe71wPOczj_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%8D%B0%EC%9D%B4%ED%84%B0-ucloud.png)
+
 
 - set slave node config이벤트 편집 버튼을 클릭 한다.
 - masterIp, password 파라미터를 추가한다.
 - master instance의 ip(private)와 master instance의 password를 입력한다.
-![워크플로우-슬레이브-파라미터.PNG](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/XJcFXxB0QD2q5SrE97PQ_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EC%8A%AC%EB%A0%88%EC%9D%B4%EB%B8%8C-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0.PNG)
+![워크플로우-데이터-파라미터-ucloud.png](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/4iNEyPMOSlqRhzqPnApb_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%8D%B0%EC%9D%B4%ED%84%B0-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0-ucloud.png)
+
 
 - Install dependencies > set slave node config > install iris > init save directory > run iris > add slave node 순으로 디자인
-![워크플로우-슬레이브-디자인.PNG](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/x9w2T1hJRrmYN6zo14gR_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EC%8A%AC%EB%A0%88%EC%9D%B4%EB%B8%8C-%EB%94%94%EC%9E%90%EC%9D%B8.PNG)
+![워크플로우-데이터-디자인-ucloud.png](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/0e49ZmjsQK6snZCo7ras_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EB%94%94%EC%9E%90%EC%9D%B8-ucloud.png)
+
+
+- 인스턴스 모델 상세 정보 > 인스턴스 추가 생성 버튼 클릭
+
+##AWS
+- Master node의 인스턴스가 생성되고 iris가 실행 상태여야 한다.
+- 서비스 관리 > 인스턴스 모델 관리 > 인스턴스 모델 검색 > iris-slave 모델(미리 생성이 되어 있어야 한다.) 선택
+- 상단 탭에서 어플리케이션 > 어플리케이션 관리 버튼 클릭 > 위에서 등록한 어플리케이션 선택
+- 상단 탭 실행 워크플로우 > 워크 플로우 추가 버튼 클릭
+- 워크플로우 이름 입력
+- 자동실행 상태 Running 설정
+![워크플로우-데이터-aws.png](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/hQskK6fQdiQefmc1l7jn_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%8D%B0%EC%9D%B4%ED%84%B0-aws.png)
+
+
+
+- set slave node config aws 이벤트 편집 버튼을 클릭 한다.
+- masterIp, serverDomain 파라미터를 추가한다.
+- master instance의 ip(private)와 mysocloud Domain명을 입력한다.
+![워크플로우-데이터-파라미터-aws.png](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/pIODhEPSFG4fLbVf19Vd_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%8D%B0%EC%9D%B4%ED%84%B0-%ED%8C%8C%EB%9D%BC%EB%AF%B8%ED%84%B0-aws.png)
+
+
+
+- Install dependencies > set slave node config aws > install iris > init save directory > run iris > add slave node 순으로 디자인
+![워크플로우-데이터-디자인-aws.png](https://s3-ap-northeast-1.amazonaws.com/torchpad-production/wikis/1595/wwi2X9mUTRCA0sMDbRRx_%EC%9B%8C%ED%81%AC%ED%94%8C%EB%A1%9C%EC%9A%B0-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EB%94%94%EC%9E%90%EC%9D%B8-aws.png)
 
 - 인스턴스 모델 상세 정보 > 인스턴스 추가 생성 버튼 클릭
 
 # IRIS 기동 확인
+##uCloud
 - master node가 설치되어 있는 instance에 ssh로 접속한다.
 ```
 $ ssh root@14.63.224.107
@@ -182,6 +262,18 @@ root@14.63.224.107's password:
 
 - iris 계정으로 전환하여 ntop 명령으로 아이리스 node 상태를 확인한다.
 ```
+[root@iris-master-20160603-082601-705-1-C1 ~]# su - iris
+[iris@iris-master-20160603-082601-705-1-C1 ~]$ ntop
+```
+##AWS
+- master node가 설치되어 있는 instance에 ssh로 접속한다.
+```
+$ ssh -i {keypair_path} ec2-user@{instance_ip}
+```
+
+- iris 계정으로 전환하여 ntop 명령으로 아이리스 node 상태를 확인한다.
+```
+[ec2-user@iris-master-20160603-082601-705-1-C1 ~]# sudo -i
 [root@iris-master-20160603-082601-705-1-C1 ~]# su - iris
 [iris@iris-master-20160603-082601-705-1-C1 ~]$ ntop
 ```
