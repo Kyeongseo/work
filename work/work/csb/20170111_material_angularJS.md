@@ -1,5 +1,6 @@
 Angular Material
 ===
+> https://material.angularjs.org/latest/
 > https://egghead.io/courses/angular-material-introduction
 
 For developers using AngularJS, Angular Material is both a __UI Component framework__ and a reference implementation of __Google's Magerial__ Design Specification.
@@ -45,27 +46,27 @@ __Containers with the Layout API__
 ```
 __Intro to UI Components__ (whiteframe)
 ```
-		<md-sidenav md-is-locked-open="true" class="md-whiteframe-4dp">
-			<md-list>
-				<md-list-item>
-					<md-button>
-						<md-icon md-svg-src="svg/avatar-1.svg" class="avatar"></md-icon>
-						Tomas
-					</md-button>
-				</md-list-item>
-				<md-list-item>
-					<md-button>
-						<md-icon md-svg-src="svg/avatar-4.svg" class="avatar"></md-icon>
-						Aaron
-					</md-button>
-				</md-list-item>
-			</md-list>
-		</md-sidenav>
-		<md-content id="content" flex>
-			<md-icon md-svg-src="svg/avatar-1.svg" class="avatar"></md-icon>
-			<h2>Tomas</h2>
-			<p>.....</p>
-		</md-content>
+<md-sidenav md-is-locked-open="true" class="md-whiteframe-4dp">
+	<md-list>
+		<md-list-item>
+			<md-button>
+				<md-icon md-svg-src="svg/avatar-1.svg" class="avatar"></md-icon>
+				Tomas
+			</md-button>
+		</md-list-item>
+		<md-list-item>
+			<md-button>
+				<md-icon md-svg-src="svg/avatar-4.svg" class="avatar"></md-icon>
+				Aaron
+			</md-button>
+		</md-list-item>
+	</md-list>
+</md-sidenav>
+<md-content id="content" flex>
+	<md-icon md-svg-src="svg/avatar-1.svg" class="avatar"></md-icon>
+	<h2>Tomas</h2>
+	<p>.....</p>
+</md-content>
 ```
 
 ---
@@ -99,6 +100,7 @@ __UI Components with Dynamic Data__
 	</script>
 </body>
 ```
+
 ---
 __Using a BottomSheet__
 
